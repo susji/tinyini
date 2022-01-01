@@ -1,3 +1,5 @@
+// package tinyini provides an extremely bare-bones library for parsing
+// INI-like configuration files.
 package tinyini
 
 import (
@@ -8,8 +10,12 @@ import (
 	"regexp"
 )
 
+// Section contains all configuration key-values of a single bracketed
+// section ("[example-section]"). All key-values may contain multiple
+// values. The values are given in the order of occurrence.
 type Section map[string][]string
 
+// IniError describes a parsing error and provides its line number.
 type IniError struct {
 	wrapped error
 	Line    int
@@ -35,7 +41,10 @@ func newError(line int, msg string) *IniError {
 	}
 }
 
-func Parse(r io.Reader) (map[string]Section, []error) {
+// Parse will produce a map of Section from an io.Reader. The caller should
+// note that Parse returns a slice of errors in the order of occurrence, so
+// the condition for success is len(errs) == 0.
+func Parse(r io.Reader) (result map[string]Section, errs []error) {
 	s := bufio.NewScanner(r)
 	lines := []string{}
 	for s.Scan() {
@@ -45,15 +54,14 @@ func Parse(r io.Reader) (map[string]Section, []error) {
 		return nil, []error{err}
 	}
 
-	res := map[string]Section{}
+	result = map[string]Section{}
 	cursection := ""
-	reterr := []error{}
 
 	akv := func(key, val string) {
-		if _, ok := res[cursection]; !ok {
-			res[cursection] = Section{}
+		if _, ok := result[cursection]; !ok {
+			result[cursection] = Section{}
 		}
-		res[cursection][key] = append(res[cursection][key], val)
+		result[cursection][key] = append(result[cursection][key], val)
 	}
 
 	for i, line := range lines {
@@ -66,8 +74,8 @@ func Parse(r io.Reader) (map[string]Section, []error) {
 		} else if m := matcherempty.FindStringIndex(line); m != nil {
 			continue
 		} else {
-			reterr = append(reterr, newError(i+1, "not section nor key-value"))
+			errs = append(errs, newError(i+1, "not section nor key-value"))
 		}
 	}
-	return res, reterr
+	return
 }
