@@ -1,9 +1,14 @@
 # tinyini
 
 `tinyini` is a minimalistic library for parsing INI-like configuration
-files. For example this is a valid `tinyini` configuration file:
+files.
 
-``` ini
+[![Tests](https://img.shields.io/github/workflow/status/susji/tinyini/Go)](https://github.com/susji/tinyini/actions/workflows/go.yml)
+[![Documentation](https://img.shields.io/badge/godoc-reference-blue.svg?label=pkg.go.dev)](https://pkg.go.dev/github.com/susji/tinyini)
+
+## example configuration file
+
+``` {.ini}
 globalkey = globalvalue
 
 [section]
