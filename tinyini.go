@@ -1,5 +1,6 @@
 // package tinyini provides an extremely bare-bones library for parsing
-// INI-like configuration files.
+// INI-like configuration files. For details, see the documentation for
+// function Parse.
 package tinyini
 
 import (
@@ -43,9 +44,22 @@ func newError(line int, msg string) *IniError {
 
 // Parse will produce a map of Section from an io.Reader. The caller should
 // note that Parse returns a slice of errors in the order of occurrence, so
-// the condition for success is len(errs) == 0. Parse will parse as much as
-// possible even when encountering errors, so result may contain something
-// useful even if len(errs) > 0.
+// the condition for success is len(errs) == 0.
+//
+// Parse will parse as much as possible even when encountering errors, so
+// result may contain something useful even if len(errs) > 0.
+//
+// The global section is given with the empty section name`""`. Otherwise the
+// ection names will be whatever valid UTF-8 is found between the brackets
+// `[` and `]`.
+//
+// Parse ignores whitespace around section headers, keys, and non-quoted
+// values. If the value should contain whitespace in its beginning or end,
+// enclose the whole value in quotes (`"  value with whitespaces  "`).
+//
+// Quotes may be contained in quoted values by escaping them like `\"`.
+// No quoted expression is handled by Parse, that is, it will return the
+// raw value verbatim.
 func Parse(r io.Reader) (result map[string]Section, errs []error) {
 	s := bufio.NewScanner(r)
 
