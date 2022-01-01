@@ -26,33 +26,19 @@ key = different value
 	if len(errs) > 0 {
 		t.Fatalf("should have no error, got %v", errs)
 	}
-	if len(res) != 3 {
-		t.Error("expecting 3 sections, got ", len(res))
-	}
-
-	if res[""] == nil {
-		t.Error("missing global section")
-	}
-	if res["section"] == nil {
-		t.Error("missing section")
-	}
-	if !reflect.DeepEqual(res[""]["globalkey"], []string{"globalvalue"}) {
-		t.Errorf("unexpected global value: %#v", res[""]["globalkey"])
-	}
-	if !reflect.DeepEqual(res["section"]["key"], []string{"first-value", "second-value"}) {
-		t.Error("missing sectioned values")
-	}
-	if !reflect.DeepEqual(res["section"]["empty"], []string{""}) {
-		t.Error("missing empty value")
-	}
-	if !reflect.DeepEqual(res["section"]["anotherkey"], []string{"  has whitespace   "}) {
-		t.Error("missing quoted value")
-	}
-	if res["änöther-section"] == nil {
-		t.Error("missing änöther-section")
-	}
-	if !reflect.DeepEqual(res["änöther-section"]["key"], []string{"different value"}) {
-		t.Error("unexpected änöther-sectioned value")
+	if !reflect.DeepEqual(
+		res,
+		map[string]tinyini.Section{
+			"": tinyini.Section{"globalkey": []string{"globalvalue"}},
+			"section": tinyini.Section{
+				"key":        []string{"first-value", "second-value"},
+				"empty":      []string{""},
+				"anotherkey": []string{"  has whitespace   "},
+			},
+			"änöther-section": tinyini.Section{
+				"key": []string{"different value"}},
+		}) {
+		t.Errorf("missing sectioned values, got %#v", res["section"])
 	}
 }
 
