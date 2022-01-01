@@ -12,16 +12,24 @@ import (
 func TestBasic(t *testing.T) {
 	c := `
 globalkey = globalvalue
+
 [section]
 key = first-value
 key = second-value
 empty=
 anotherkey = "  has whitespace   "
+
+[änöther-section] ; this is a comment and ignored
+key = different value
 `
 	res, errs := tinyini.Parse(strings.NewReader(c))
 	if len(errs) > 0 {
 		t.Fatalf("should have no error, got %v", errs)
 	}
+	if len(res) != 3 {
+		t.Error("expecting 3 sections, got ", len(res))
+	}
+
 	if res[""] == nil {
 		t.Error("missing global section")
 	}
@@ -39,6 +47,12 @@ anotherkey = "  has whitespace   "
 	}
 	if !reflect.DeepEqual(res["section"]["anotherkey"], []string{"  has whitespace   "}) {
 		t.Error("missing quoted value")
+	}
+	if res["änöther-section"] == nil {
+		t.Error("missing änöther-section")
+	}
+	if !reflect.DeepEqual(res["änöther-section"]["key"], []string{"different value"}) {
+		t.Error("unexpected änöther-sectioned value")
 	}
 }
 
