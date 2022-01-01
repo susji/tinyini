@@ -43,7 +43,9 @@ func newError(line int, msg string) *IniError {
 
 // Parse will produce a map of Section from an io.Reader. The caller should
 // note that Parse returns a slice of errors in the order of occurrence, so
-// the condition for success is len(errs) == 0.
+// the condition for success is len(errs) == 0. Parse will parse as much as
+// possible even when encountering errors, so result may contain something
+// useful even if len(errs) > 0.
 func Parse(r io.Reader) (result map[string]Section, errs []error) {
 	s := bufio.NewScanner(r)
 	lines := []string{}
@@ -51,7 +53,7 @@ func Parse(r io.Reader) (result map[string]Section, errs []error) {
 		lines = append(lines, s.Text())
 	}
 	if err := s.Err(); err != nil {
-		return nil, []error{err}
+		errs = append(errs, err)
 	}
 
 	result = map[string]Section{}
