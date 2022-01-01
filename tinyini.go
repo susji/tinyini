@@ -48,13 +48,6 @@ func newError(line int, msg string) *IniError {
 // useful even if len(errs) > 0.
 func Parse(r io.Reader) (result map[string]Section, errs []error) {
 	s := bufio.NewScanner(r)
-	lines := []string{}
-	for s.Scan() {
-		lines = append(lines, s.Text())
-	}
-	if err := s.Err(); err != nil {
-		errs = append(errs, err)
-	}
 
 	result = map[string]Section{}
 	cursection := ""
@@ -66,7 +59,9 @@ func Parse(r io.Reader) (result map[string]Section, errs []error) {
 		result[cursection][key] = append(result[cursection][key], val)
 	}
 
-	for i, line := range lines {
+	lineno := 1
+	for s.Scan() {
+		line := s.Text()
 		if m := matcherkeyvalq.FindStringSubmatch(line); m != nil {
 			akv(m[1], m[2])
 		} else if m := matcherkeyval.FindStringSubmatch(line); m != nil {
@@ -74,10 +69,15 @@ func Parse(r io.Reader) (result map[string]Section, errs []error) {
 		} else if m := matchersection.FindStringSubmatch(line); m != nil {
 			cursection = m[1]
 		} else if m := matcherempty.FindStringIndex(line); m != nil {
-			continue
+			// fallthrough
 		} else {
-			errs = append(errs, newError(i+1, "not section nor key-value"))
+			errs = append(errs, newError(lineno, "not section nor key-value"))
 		}
+		lineno++
+
+	}
+	if err := s.Err(); err != nil {
+		errs = append(errs, err)
 	}
 	return
 }
