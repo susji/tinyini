@@ -49,17 +49,20 @@ func newError(line int, msg string) *IniError {
 // Parse will parse as much as possible even when encountering errors, so
 // result may contain something useful even if len(errs) > 0.
 //
-// The global section is given with the empty section name`""`. Otherwise the
+// The global section is given with the empty section name "". Otherwise the
 // ection names will be whatever valid UTF-8 is found between the brackets
-// `[` and `]`.
+// '[' and ']'.
 //
 // Parse ignores whitespace around section headers, keys, and non-quoted
 // values. If the value should contain whitespace in its beginning or end,
-// enclose the whole value in quotes (`"  value with whitespaces  "`).
+// enclose the whole value in quotes ("  value with whitespaces  ").
 //
-// Quotes may be contained in quoted values by escaping them like `\"`.
+// Quotes may be contained in quoted values by escaping them like \".
 // No quoted expression is handled by Parse, that is, it will return the
 // raw value verbatim.
+//
+// All keys may contain multiple values. Their additional values are
+// appended to their respective section in the order of appearance.
 func Parse(r io.Reader) (result map[string]Section, errs []error) {
 	s := bufio.NewScanner(r)
 
