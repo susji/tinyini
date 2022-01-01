@@ -6,8 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	tu "github.com/susji/ked/internal/testutil"
-	"github.com/susji/ked/tinyini"
+	"github.com/susji/tinyini"
 )
 
 func TestBasic(t *testing.T) {
@@ -20,25 +19,27 @@ empty=
 anotherkey = "  has whitespace   "
 `
 	res, errs := tinyini.Parse(strings.NewReader(c))
-	tu.Assert(t, len(errs) == 0, "should have no error, got %v", errs)
-	tu.Assert(t, res[""] != nil, "missing global section")
-	tu.Assert(t, res["section"] != nil, "missing section")
-	tu.Assert(
-		t,
-		reflect.DeepEqual(res[""]["globalkey"], []string{"globalvalue"}),
-		"unexpected global value: %#v", res[""]["globalkey"])
-	tu.Assert(
-		t,
-		reflect.DeepEqual(res["section"]["key"], []string{"first-value", "second-value"}),
-		"missing sectioned values")
-	tu.Assert(
-		t,
-		reflect.DeepEqual(res["section"]["empty"], []string{""}),
-		"missing empty value")
-	tu.Assert(
-		t,
-		reflect.DeepEqual(res["section"]["anotherkey"], []string{"  has whitespace   "}),
-		"missing quoted value")
+	if len(errs) > 0 {
+		t.Fatalf("should have no error, got %v", errs)
+	}
+	if res[""] == nil {
+		t.Error("missing global section")
+	}
+	if res["section"] == nil {
+		t.Error("missing section")
+	}
+	if !reflect.DeepEqual(res[""]["globalkey"], []string{"globalvalue"}) {
+		t.Errorf("unexpected global value: %#v", res[""]["globalkey"])
+	}
+	if !reflect.DeepEqual(res["section"]["key"], []string{"first-value", "second-value"}) {
+		t.Error("missing sectioned values")
+	}
+	if !reflect.DeepEqual(res["section"]["empty"], []string{""}) {
+		t.Error("missing empty value")
+	}
+	if !reflect.DeepEqual(res["section"]["anotherkey"], []string{"  has whitespace   "}) {
+		t.Error("missing quoted value")
+	}
 }
 
 func TestError(t *testing.T) {
@@ -63,12 +64,11 @@ error
 				return
 			}
 			err := errs[0].(*tinyini.IniError)
-			tu.Assert(
-				t,
-				err.Line == entry.line,
-				"error line %d, wanted %d",
-				err.Line,
-				entry.line)
+			if err.Line != entry.line {
+				t.Errorf("error line %d, wanted %d",
+					err.Line,
+					entry.line)
+			}
 		})
 	}
 }
