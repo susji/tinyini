@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"strings"
 )
 
 // Section contains all configuration key-values of a single bracketed
@@ -80,7 +81,7 @@ func Parse(r io.Reader) (result map[string]Section, errs []error) {
 	for s.Scan() {
 		line := s.Text()
 		if m := matcherkeyvalq.FindStringSubmatch(line); m != nil {
-			akv(m[1], m[2])
+			akv(m[1], strings.Replace(m[2], `\"`, `"`, -1))
 		} else if m := matcherkeyval.FindStringSubmatch(line); m != nil {
 			akv(m[1], m[2])
 		} else if m := matchersection.FindStringSubmatch(line); m != nil {
