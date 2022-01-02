@@ -72,3 +72,48 @@ error
 		})
 	}
 }
+
+func TestQuoted(t *testing.T) {
+	// We do not attempt to separate "almost quoted" from
+	// "properly quoted" values. This test reflects that.
+	table := []struct {
+		give string
+		want tinyini.Section
+	}{
+		{
+			`key = "value"`,
+			tinyini.Section{"key": []string{"value"}},
+		},
+		{
+			`key = "\a\b\n"`,
+			tinyini.Section{"key": []string{`\a\b\n`}},
+		},
+		{
+			`key = "`,
+			tinyini.Section{"key": []string{`"`}},
+		},
+		{
+			`key = "hola\"`,
+			tinyini.Section{"key": []string{`"hola\"`}},
+		},
+		{
+			`key = "\"value\""`,
+			tinyini.Section{"key": []string{`"value"`}},
+		},
+		{
+			`key = "\\\"value\\\""`,
+			tinyini.Section{"key": []string{`\\"value\\"`}},
+		},
+	}
+	for _, entry := range table {
+		t.Run(fmt.Sprintf("%s_%v", entry.give, entry.want), func(t *testing.T) {
+			got, errs := tinyini.Parse(strings.NewReader(entry.give))
+			if len(errs) != 0 {
+				t.Errorf("expecting no errors, got %d", len(errs))
+			}
+			if !reflect.DeepEqual(got, map[string]tinyini.Section{"": entry.want}) {
+				t.Errorf("got %#v, want %#v", got, entry.want)
+			}
+		})
+	}
+}
