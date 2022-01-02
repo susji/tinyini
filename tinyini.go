@@ -58,9 +58,9 @@ func newError(line int, msg string) *IniError {
 // values. If the value should contain whitespace in its beginning or end,
 // enclose the whole value in quotes ("  value with whitespaces  ").
 //
-// Quotes may be contained in quoted values by escaping them like \".
-// No quoted expression is handled by Parse, that is, it will return the
-// raw value verbatim.
+// Quotes may be contained in quoted values by escaping them with the
+// backslash like \". Escaped quotes will be unquoted when parsing, but
+// all other seemingly "escaped" values like \n are ignored and left verbatim.
 //
 // All keys may contain multiple values. Their additional values are
 // appended to their respective section in the order of appearance.
