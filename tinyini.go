@@ -15,12 +15,17 @@ import (
 // Section contains all configuration key-values of a single bracketed
 // section ("[example-section]"). All key-values may contain multiple
 // values. The values are given in the order of occurrence.
-type Section map[string][]string
+type Section map[string][]Pair
 
 // IniError describes a parsing error and provides its line number.
 type IniError struct {
 	wrapped error
 	Line    int
+}
+
+type Pair struct {
+	Value  string
+	Lineno int
 }
 
 var matchercomment = regexp.MustCompile(`^\s*;`)
@@ -71,11 +76,12 @@ func Parse(r io.Reader) (result map[string]Section, errs []error) {
 	result = map[string]Section{}
 	cursection := ""
 
-	akv := func(key, val string) {
+	akv := func(lineno int, key, val string) {
 		if _, ok := result[cursection]; !ok {
 			result[cursection] = Section{}
 		}
-		result[cursection][key] = append(result[cursection][key], val)
+		result[cursection][key] = append(
+			result[cursection][key], Pair{Value: val, Lineno: lineno})
 	}
 
 	lineno := 1
@@ -84,9 +90,9 @@ func Parse(r io.Reader) (result map[string]Section, errs []error) {
 		if m := matchercomment.FindStringIndex(line); m != nil {
 			// fallthrough
 		} else if m := matcherkeyvalq.FindStringSubmatch(line); m != nil {
-			akv(m[1], strings.Replace(m[2], `\"`, `"`, -1))
+			akv(lineno, m[1], strings.Replace(m[2], `\"`, `"`, -1))
 		} else if m := matcherkeyval.FindStringSubmatch(line); m != nil {
-			akv(m[1], m[2])
+			akv(lineno, m[1], m[2])
 		} else if m := matchersection.FindStringSubmatch(line); m != nil {
 			cursection = m[1]
 		} else if m := matcherempty.FindStringIndex(line); m != nil {

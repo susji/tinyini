@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/susji/tinyini"
+	ti "github.com/susji/tinyini"
 )
 
 func TestBasic(t *testing.T) {
@@ -24,21 +24,21 @@ anotherkey = "  has whitespace   " ; ends with a comment
 [änöther-section] ; this is a comment and ignored
 key = different value
 `
-	res, errs := tinyini.Parse(strings.NewReader(c))
+	res, errs := ti.Parse(strings.NewReader(c))
 	if len(errs) > 0 {
 		t.Fatalf("should have no error, got %v", errs)
 	}
 	if !reflect.DeepEqual(
 		res,
-		map[string]tinyini.Section{
-			"": tinyini.Section{"globalkey": []string{"globalvalue"}},
-			"section": tinyini.Section{
-				"key":        []string{"first-value", "second-value"},
-				"empty":      []string{""},
-				"anotherkey": []string{"  has whitespace   "},
+		map[string]ti.Section{
+			"": ti.Section{"globalkey": []ti.Pair{ti.Pair{"globalvalue", 2}}},
+			"section": ti.Section{
+				"key":        []ti.Pair{ti.Pair{"first-value", 5}, ti.Pair{"second-value", 6}},
+				"empty":      []ti.Pair{ti.Pair{"", 7}},
+				"anotherkey": []ti.Pair{ti.Pair{"  has whitespace   ", 10}},
 			},
-			"änöther-section": tinyini.Section{
-				"key": []string{"different value"}},
+			"änöther-section": ti.Section{
+				"key": []ti.Pair{ti.Pair{"different value", 13}}},
 		}) {
 		t.Errorf("missing sectioned values, got %#v", res["section"])
 	}
@@ -60,12 +60,12 @@ error
 
 	for _, entry := range table {
 		t.Run(fmt.Sprintf("%s_%d", entry.conf, entry.line), func(t *testing.T) {
-			_, errs := tinyini.Parse(strings.NewReader(entry.conf))
+			_, errs := ti.Parse(strings.NewReader(entry.conf))
 			if len(errs) != 1 {
 				t.Errorf("expecting 1 error, got %d", len(errs))
 				return
 			}
-			err := errs[0].(*tinyini.IniError)
+			err := errs[0].(*ti.IniError)
 			if err.Line != entry.line {
 				t.Errorf("error line %d, wanted %d",
 					err.Line,
@@ -80,40 +80,43 @@ func TestQuoted(t *testing.T) {
 	// "properly quoted" values. This test reflects that.
 	table := []struct {
 		give string
-		want tinyini.Section
+		want string
 	}{
 		{
 			`key = "value"`,
-			tinyini.Section{"key": []string{"value"}},
+			"value",
 		},
 		{
 			`key = "\a\b\n"`,
-			tinyini.Section{"key": []string{`\a\b\n`}},
+			`\a\b\n`,
 		},
 		{
 			`key = "`,
-			tinyini.Section{"key": []string{`"`}},
+			`"`,
 		},
 		{
 			`key = "hola\"`,
-			tinyini.Section{"key": []string{`"hola\"`}},
+			`"hola\"`,
 		},
 		{
 			`key = "\"value\""`,
-			tinyini.Section{"key": []string{`"value"`}},
+			`"value"`,
 		},
 		{
 			`key = "\\\"value\\\""`,
-			tinyini.Section{"key": []string{`\\"value\\"`}},
+			`\\"value\\"`,
 		},
 	}
 	for _, entry := range table {
 		t.Run(fmt.Sprintf("%s_%v", entry.give, entry.want), func(t *testing.T) {
-			got, errs := tinyini.Parse(strings.NewReader(entry.give))
+			got, errs := ti.Parse(strings.NewReader(entry.give))
 			if len(errs) != 0 {
 				t.Errorf("expecting no errors, got %d", len(errs))
 			}
-			if !reflect.DeepEqual(got, map[string]tinyini.Section{"": entry.want}) {
+			if !reflect.DeepEqual(
+				got,
+				map[string]ti.Section{
+					"": ti.Section{"key": []ti.Pair{ti.Pair{entry.want, 1}}}}) {
 				t.Errorf("got %#v, want %#v", got, entry.want)
 			}
 		})
