@@ -23,9 +23,10 @@ type IniError struct {
 	Line    int
 }
 
+var matchercomment = regexp.MustCompile(`^\s*;`)
 var matchersection = regexp.MustCompile(`^\s*\[(.+?)\]`)
-var matcherkeyval = regexp.MustCompile(`^\s*(.+?)\s*=\s*(.*?)\s*$`)
-var matcherkeyvalq = regexp.MustCompile(`^\s*(.+?)\s*=\s*"((\\.|[^"\\])*)"`)
+var matcherkeyval = regexp.MustCompile(`^\s*(.+?)\s*=\s*(.*?)\s*(;.*)?$`)
+var matcherkeyvalq = regexp.MustCompile(`^\s*(.+?)\s*=\s*"((\\.|[^"\\])*)(;.*)?"`)
 var matcherempty = regexp.MustCompile(`^\s*$`)
 
 func (i *IniError) Error() string {
@@ -80,7 +81,9 @@ func Parse(r io.Reader) (result map[string]Section, errs []error) {
 	lineno := 1
 	for s.Scan() {
 		line := s.Text()
-		if m := matcherkeyvalq.FindStringSubmatch(line); m != nil {
+		if m := matchercomment.FindStringIndex(line); m != nil {
+			// fallthrough
+		} else if m := matcherkeyvalq.FindStringSubmatch(line); m != nil {
 			akv(m[1], strings.Replace(m[2], `\"`, `"`, -1))
 		} else if m := matcherkeyval.FindStringSubmatch(line); m != nil {
 			akv(m[1], m[2])

@@ -16,8 +16,10 @@ globalkey = globalvalue
 [section]
 key = first-value
 key = second-value
-empty=
-anotherkey = "  has whitespace   "
+empty= ;ends with a comment
+; comment line
+  ; another comment line
+anotherkey = "  has whitespace   " ; ends with a comment
 
 [änöther-section] ; this is a comment and ignored
 key = different value
