@@ -22,7 +22,7 @@ empty= ;ends with a comment
 anotherkey = "  has whitespace   " ; ends with a comment
 
 [änöther-section] ; this is a comment and ignored
-key = different value
+key = "different value"
 `
 	res, errs := ti.Parse(strings.NewReader(c))
 	if len(errs) > 0 {
@@ -84,6 +84,10 @@ func TestQuoted(t *testing.T) {
 	}{
 		{
 			`key = "value"`,
+			"value",
+		},
+		{
+			`key = "value" ; comment`,
 			"value",
 		},
 		{
