@@ -46,8 +46,8 @@ key = "different value"
 
 func TestError(t *testing.T) {
 	table := []struct {
-		conf string
-		line int
+		conf   string
+		lineno int
 	}{
 		{`ok = value
 error
@@ -56,20 +56,27 @@ error
 [another-section]
 [borken
 `, 3},
+		{`[section]
+onlykey
+`, 2},
+		{`[section]
+key = value
+key ;broken
+`, 3},
 	}
 
 	for _, entry := range table {
-		t.Run(fmt.Sprintf("%s_%d", entry.conf, entry.line), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s_%d", entry.conf, entry.lineno), func(t *testing.T) {
 			_, errs := ti.Parse(strings.NewReader(entry.conf))
 			if len(errs) != 1 {
 				t.Errorf("expecting 1 error, got %d", len(errs))
 				return
 			}
 			err := errs[0].(*ti.IniError)
-			if err.Line != entry.line {
+			if err.Lineno != entry.lineno {
 				t.Errorf("error line %d, wanted %d",
-					err.Line,
-					entry.line)
+					err.Lineno,
+					entry.lineno)
 			}
 		})
 	}
