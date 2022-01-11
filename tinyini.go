@@ -31,7 +31,7 @@ type Pair struct {
 var matchercomment = regexp.MustCompile(`^\s*;`)
 var matchersection = regexp.MustCompile(`^\s*\[(.+?)\]`)
 var matcherkeyval = regexp.MustCompile(`^\s*(.+?)\s*=\s*(.*?)\s*(;.*)?$`)
-var matcherkeyvalq = regexp.MustCompile(`^\s*(.+?)\s*=\s*"((\\.|[^"\\])*)(;.*)?"`)
+var matcherkeyvalq = regexp.MustCompile(`^\s*(.+?)\s*=\s*"((\\.|[^"\\])*)"\s*(;.*)?$`)
 var matcherempty = regexp.MustCompile(`^\s*$`)
 
 func (i *IniError) Error() string {
