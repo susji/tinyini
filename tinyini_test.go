@@ -56,6 +56,13 @@ error
 [another-section]
 [borken
 `, 3},
+		{`[section]
+onlykey
+`, 2},
+		{`[section]
+key = value
+key ;broken
+`, 3},
 	}
 
 	for _, entry := range table {
