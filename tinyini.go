@@ -20,7 +20,7 @@ type Section map[string][]Pair
 // IniError describes a parsing error and provides its line number.
 type IniError struct {
 	wrapped error
-	Line    int
+	Lineno  int
 }
 
 type Pair struct {
@@ -35,17 +35,17 @@ var matcherkeyvalq = regexp.MustCompile(`^\s*(.+?)\s*=\s*"((\\.|[^"\\])*)"\s*(;.
 var matcherempty = regexp.MustCompile(`^\s*$`)
 
 func (i *IniError) Error() string {
-	return fmt.Sprintf("%d: %v", i.Line, i.wrapped)
+	return fmt.Sprintf("%d: %v", i.Lineno, i.wrapped)
 }
 
 func (i *IniError) Unwrap() error {
 	return i.wrapped
 }
 
-func newError(line int, msg string) *IniError {
+func newError(lineno int, msg string) *IniError {
 	return &IniError{
 		wrapped: errors.New(msg),
-		Line:    line,
+		Lineno:  lineno,
 	}
 }
 
