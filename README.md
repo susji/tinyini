@@ -8,7 +8,7 @@ files.
 
 ## example configuration file
 
-``` {.ini}
+``` ini
 globalkey = globalvalue
 
 [section]
