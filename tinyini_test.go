@@ -30,7 +30,7 @@ key = "different value"
 	}
 	if !reflect.DeepEqual(
 		res,
-		map[string]ti.Section{
+		ti.Sections{
 			"": ti.Section{"globalkey": []ti.Pair{ti.Pair{"globalvalue", 2}}},
 			"section": ti.Section{
 				"key":        []ti.Pair{ti.Pair{"first-value", 5}, ti.Pair{"second-value", 6}},
@@ -40,7 +40,7 @@ key = "different value"
 			"änöther-section": ti.Section{
 				"key": []ti.Pair{ti.Pair{"different value", 13}}},
 		}) {
-		t.Errorf("missing sectioned values, got %#v", res["section"])
+		t.Errorf("missing sectioned values, got %#v", res)
 	}
 }
 
@@ -126,10 +126,79 @@ func TestQuoted(t *testing.T) {
 			}
 			if !reflect.DeepEqual(
 				got,
-				map[string]ti.Section{
+				ti.Sections{
 					"": ti.Section{"key": []ti.Pair{ti.Pair{entry.want, 1}}}}) {
 				t.Errorf("got %#v, want %#v", got, entry.want)
 			}
 		})
 	}
+}
+
+func TestForEach(t *testing.T) {
+	config := `
+toplevelvar1 = tl1
+toplevelvar2 = " tl2 "
+
+[section1]
+section1var=section1val1
+section1var=section1val2
+
+[section2]
+section2var=section2val
+section2notseen=123
+`
+	sections, errs := ti.Parse(strings.NewReader(config))
+	if len(errs) != 0 {
+		t.Errorf("expecting no errors, got %d", len(errs))
+	}
+
+	s1var := 0
+	sections.ForEach(func(section, name, value string) bool {
+		switch section {
+		case "":
+			switch name {
+			case "toplevelvar1":
+				if value != "tl1" {
+					t.Error("toplevelvar1")
+				}
+			case "toplevelvar2":
+				if value != " tl2 " {
+					t.Error("toplevelvar2")
+				}
+			default:
+				t.Error("unrecognized top level definition")
+			}
+		case "section1":
+			switch name {
+			case "section1var":
+				if s1var == 0 {
+					if value != "section1val1" {
+						t.Error("section1var#0")
+					}
+					s1var++
+				} else if s1var == 1 {
+					if value != "section1val2" {
+						t.Error("section1var#1")
+					}
+					s1var++
+				} else {
+					t.Error("too many section1val2")
+				}
+
+			default:
+				t.Error("unrecognized section1 definition")
+			}
+		case "section2":
+			switch name {
+			case "section2var":
+				if value != "section2val" {
+					t.Error("section2var")
+				}
+				return false
+			default:
+				t.Error("unrecognized section2 definition")
+			}
+		}
+		return true
+	})
 }

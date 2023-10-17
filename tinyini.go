@@ -17,6 +17,12 @@ import (
 // values. The values are given in the order of occurrence.
 type Section map[string][]Pair
 
+// Sections is a convenience type over map[string]Sections.
+type Sections map[string]Section
+
+// ForEacher is the callback function type for iterating over values.
+type ForEacher func(section, name, value string) bool
+
 // IniError describes a parsing error and provides its line number.
 type IniError struct {
 	wrapped error
@@ -70,7 +76,7 @@ func newError(lineno int, msg string) *IniError {
 //
 // All keys may contain multiple values. Their additional values are
 // appended to their respective section in the order of appearance.
-func Parse(r io.Reader) (result map[string]Section, errs []error) {
+func Parse(r io.Reader) (result Sections, errs []error) {
 	s := bufio.NewScanner(r)
 
 	result = map[string]Section{}
@@ -107,4 +113,21 @@ func Parse(r io.Reader) (result map[string]Section, errs []error) {
 		errs = append(errs, err)
 	}
 	return
+}
+
+// ForEach is a convenience function for simple iteration over Sections. The
+// passed callback is called with parsed values in the order of appearance. If
+// the callback returns false, iteration is stopped. If a section-specific
+// variable has been defined multiple times, each value will be passed on to the
+// callback with separate invocations.
+func (s Sections) ForEach(callback ForEacher) {
+	for sn, section := range s {
+		for vn, pairs := range section {
+			for _, pair := range pairs {
+				if !callback(sn, vn, pair.Value) {
+					return
+				}
+			}
+		}
+	}
 }
