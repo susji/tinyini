@@ -145,7 +145,7 @@ section1var=section1val2
 
 [section2]
 section2var=section2val
-section2notseen=123
+section2var=notseen
 `
 	sections, errs := ti.Parse(strings.NewReader(config))
 	if len(errs) != 0 {
