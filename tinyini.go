@@ -115,11 +115,12 @@ func Parse(r io.Reader) (result Sections, errs []error) {
 	return
 }
 
-// ForEach is a convenience function for simple iteration over Sections. The
-// passed callback is called with parsed values in the order of appearance. If
-// the callback returns false, iteration is stopped. If a section-specific
-// variable has been defined multiple times, each value will be passed on to the
-// callback with separate invocations.
+// ForEach is a convenience function for simple iteration over Sections. ForEach
+// invokes the callback with Sections and different keys in random order. If a
+// specific key-value pair has multiple definitions, each different value will
+// be passed on to the callback with separate, sequential invocations and in the
+// same order as they were in the source material. If the callback returns
+// false, iteration is stopped.
 func (s Sections) ForEach(callback ForEacher) {
 	for sn, section := range s {
 		for vn, pairs := range section {
