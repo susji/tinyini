@@ -206,7 +206,7 @@ section2var=notseen
 	})
 }
 
-func ExampleForEach() {
+func ExampleSections() {
 	config := `
 value=123
 another_value=" xyz "
