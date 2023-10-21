@@ -20,8 +20,8 @@ type Section map[string][]Pair
 // Sections is a convenience type over map[string]Section.
 type Sections map[string]Section
 
-// ForEacher is the callback function type for iterating over values.
-type ForEacher func(section, name, value string) bool
+// ForEachCallback is the callback function type for iterating over values.
+type ForEachCallback func(section, key, value string) bool
 
 // IniError describes a parsing error and provides its line number.
 type IniError struct {
@@ -121,7 +121,7 @@ func Parse(r io.Reader) (result Sections, errs []error) {
 // be passed on to the callback with separate, sequential invocations and in the
 // same order as they were in the source material. If the callback returns
 // false, iteration is stopped.
-func (s Sections) ForEach(callback ForEacher) {
+func (s Sections) ForEach(callback ForEachCallback) {
 	for sn, section := range s {
 		for vn, pairs := range section {
 			for _, pair := range pairs {
