@@ -17,11 +17,11 @@ import (
 // values. The values are given in the order of occurrence.
 type Section map[string][]Pair
 
-// Sections is a convenience type over map[string]Sections.
+// Sections is a convenience type over map[string]Section.
 type Sections map[string]Section
 
-// ForEacher is the callback function type for iterating over values.
-type ForEacher func(section, name, value string) bool
+// ForEachCallback is the callback function type for iterating over values.
+type ForEachCallback func(section, key, value string) bool
 
 // IniError describes a parsing error and provides its line number.
 type IniError struct {
@@ -55,9 +55,10 @@ func newError(lineno int, msg string) *IniError {
 	}
 }
 
-// Parse will produce a map of Section from an io.Reader. The caller should
-// note that Parse returns a slice of errors in the order of occurrence, so
-// the condition for success is len(errs) == 0.
+// Parse will produce a map of Section from an io.Reader which contains
+// key-values and sections in tinyini's liking. Parse returns a slice of errors
+// in the order of occurrence, so the condition for total success is len(errs)
+// == 0.
 //
 // Parse will parse as much as possible even when encountering errors, so
 // result may contain something useful even if len(errs) > 0.
@@ -74,8 +75,8 @@ func newError(lineno int, msg string) *IniError {
 // backslash like \". Escaped quotes will be unquoted when parsing, but
 // all other seemingly "escaped" values like \n are ignored and left verbatim.
 //
-// All keys may contain multiple values. Their additional values are
-// appended to their respective section in the order of appearance.
+// All keys may contain multiple values. Multiple values will be stored in their
+// order of appearance.
 func Parse(r io.Reader) (result Sections, errs []error) {
 	s := bufio.NewScanner(r)
 
@@ -115,12 +116,15 @@ func Parse(r io.Reader) (result Sections, errs []error) {
 	return
 }
 
-// ForEach is a convenience function for simple iteration over Sections. The
-// passed callback is called with parsed values in the order of appearance. If
-// the callback returns false, iteration is stopped. If a section-specific
-// variable has been defined multiple times, each value will be passed on to the
-// callback with separate invocations.
-func (s Sections) ForEach(callback ForEacher) {
+// ForEach is a convenience function for simple iteration over Sections. ForEach
+// invokes the callback with Sections and different keys in random order.
+//
+// If a specific key-value pair has multiple definitions, each different value
+// will be passed on to the callback with separate, sequential invocations and
+// in their order of appearance.
+//
+// If the callback returns false, iteration is stopped.
+func (s Sections) ForEach(callback ForEachCallback) {
 	for sn, section := range s {
 		for vn, pairs := range section {
 			for _, pair := range pairs {
