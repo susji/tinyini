@@ -55,9 +55,10 @@ func newError(lineno int, msg string) *IniError {
 	}
 }
 
-// Parse will produce a map of Section from an io.Reader. The caller should
-// note that Parse returns a slice of errors in the order of occurrence, so
-// the condition for success is len(errs) == 0.
+// Parse will produce a map of Section from an io.Reader which contains
+// key-values and sections in tinyini's liking. Parse returns a slice of errors
+// in the order of occurrence, so the condition for total success is len(errs)
+// == 0.
 //
 // Parse will parse as much as possible even when encountering errors, so
 // result may contain something useful even if len(errs) > 0.
@@ -74,8 +75,8 @@ func newError(lineno int, msg string) *IniError {
 // backslash like \". Escaped quotes will be unquoted when parsing, but
 // all other seemingly "escaped" values like \n are ignored and left verbatim.
 //
-// All keys may contain multiple values. Their additional values are
-// appended to their respective section in the order of appearance.
+// All keys may contain multiple values. Multiple values will be stored in their
+// order of appearance.
 func Parse(r io.Reader) (result Sections, errs []error) {
 	s := bufio.NewScanner(r)
 
@@ -116,11 +117,13 @@ func Parse(r io.Reader) (result Sections, errs []error) {
 }
 
 // ForEach is a convenience function for simple iteration over Sections. ForEach
-// invokes the callback with Sections and different keys in random order. If a
-// specific key-value pair has multiple definitions, each different value will
-// be passed on to the callback with separate, sequential invocations and in the
-// same order as they were in the source material. If the callback returns
-// false, iteration is stopped.
+// invokes the callback with Sections and different keys in random order.
+//
+// If a specific key-value pair has multiple definitions, each different value
+// will be passed on to the callback with separate, sequential invocations and
+// in their order of appearance.
+//
+// If the callback returns false, iteration is stopped.
 func (s Sections) ForEach(callback ForEachCallback) {
 	for sn, section := range s {
 		for vn, pairs := range section {
