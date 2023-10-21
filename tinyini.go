@@ -17,7 +17,7 @@ import (
 // values. The values are given in the order of occurrence.
 type Section map[string][]Pair
 
-// Sections is a convenience type over map[string]Sections.
+// Sections is a convenience type over map[string]Section.
 type Sections map[string]Section
 
 // ForEacher is the callback function type for iterating over values.
