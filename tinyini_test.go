@@ -2,10 +2,13 @@ package tinyini_test
 
 import (
 	"fmt"
+	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/susji/tinyini"
 	ti "github.com/susji/tinyini"
 )
 
@@ -201,4 +204,41 @@ section2var=notseen
 		}
 		return true
 	})
+}
+
+func ExampleForEach() {
+	config := `
+value=123
+another_value=" xyz "
+
+[section]
+value=321
+another_value="abc"
+`
+	sections, errs := tinyini.Parse(strings.NewReader(config))
+	if len(errs) > 0 {
+		fmt.Println("parsing errors: ", errs)
+		os.Exit(1)
+	}
+
+	var value int
+	var anotherValue string
+	sections.ForEach(func(section, k, v string) bool {
+		switch section {
+		case "":
+			switch k {
+			case "value":
+				value, _ = strconv.Atoi(v)
+			}
+		case "section":
+			switch k {
+			case "another_value":
+				anotherValue = v
+			}
+		}
+		return true
+	})
+
+	fmt.Printf("value is %d and anotherValue is %s\n", value, anotherValue)
+	// Output: value is 123 and anotherValue is abc
 }
