@@ -206,6 +206,41 @@ section2var=notseen
 	})
 }
 
+func TestEmptySection(t *testing.T) {
+	config := `
+main1 = value1
+
+[section]
+subkey=subval
+
+[]
+main2=value2
+
+[another-section]
+another-key=another-value
+`
+	sections, errs := ti.Parse(strings.NewReader(config))
+	if len(errs) != 0 {
+		t.Error(errs)
+	}
+	if !reflect.DeepEqual(
+		sections,
+		ti.Sections{
+			"": ti.Section{
+				"main1": []ti.Pair{ti.Pair{"value1", 2}},
+				"main2": []ti.Pair{ti.Pair{"value2", 8}},
+			},
+			"section": ti.Section{
+				"subkey": []ti.Pair{ti.Pair{"subval", 5}},
+			},
+			"another-section": ti.Section{
+				"another-key": []ti.Pair{ti.Pair{"another-value", 11}},
+			},
+		}) {
+		t.Errorf("bad values, got %#v", sections)
+	}
+}
+
 func ExampleSections() {
 	config := `
 value=123
